@@ -99,6 +99,10 @@ NOEXPORT LEAK_ENTRY leak_hash_table[LEAK_TABLE_SIZE],
 NOEXPORT int leak_result_num=0;
 
 #if OPENSSL_VERSION_NUMBER >= 0x10101000L
+
+typedef int (*sk_LEAK_ENTRY_compfunc)(const LEAK_ENTRY *const *a, const LEAK_ENTRY *const *b);
+STACK_OF(LEAK_ENTRY) *sk_LEAK_ENTRY_new_reserve(sk_LEAK_ENTRY_compfunc compare, int n);
+
 DEFINE_STACK_OF(LEAK_ENTRY)
 #endif /* OpenSSL version >= 1.1.1 */
 

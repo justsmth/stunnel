@@ -36,6 +36,8 @@
  */
 
 #include "prototypes.h"
+OPENSSL_INIT_SETTINGS *OPENSSL_INIT_new(void);
+void OPENSSL_INIT_free(OPENSSL_INIT_SETTINGS *init);
 
     /* global OpenSSL initialization: compression, engine, entropy */
 #if OPENSSL_VERSION_NUMBER>=0x10100000L
@@ -190,6 +192,7 @@ void crypto_init(void) {
 
 /* initialize lbssl before parsing the configuration file */
 int ssl_init(void) {
+#ifndef OPENSSL_IS_AWSLC
     index_ssl_cli=SSL_get_ex_new_index(0,
         strdup("CLI pointer"), NULL, NULL, NULL);
     index_ssl_ctx_opt=SSL_CTX_get_ex_new_index(0,
@@ -204,6 +207,7 @@ int ssl_init(void) {
         s_log(LOG_ERR, "Application specific data initialization failed");
         return 1;
     }
+#endif
 #ifndef OPENSSL_NO_DH
     dh_params=get_dh2048();
     if(!dh_params) {
@@ -238,6 +242,8 @@ int DH_set0_pqg(DH *dh, BIGNUM *p, BIGNUM *q, BIGNUM *g) {
 #endif
 
 #if OPENSSL_VERSION_NUMBER>=0x10100000L
+OPENSSL_EXPORT int CRYPTO_set_ex_data(CRYPTO_EX_DATA *ad, int index, void *val);
+
 NOEXPORT void cb_new_auth(void *parent, void *ptr, CRYPTO_EX_DATA *ad,
         int idx, long argl, void *argp) {
 #else /* OPENSSL_VERSION_NUMBER>=0x10100000L */

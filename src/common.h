@@ -487,7 +487,9 @@ extern char *sys_errlist[];
 #include <openssl/conf.h>
 #include <openssl/lhash.h>
 #include <openssl/ssl.h>
+#ifndef OPENSSL_IS_AWSLC
 #include <openssl/ui.h>
+#endif
 #include <openssl/err.h>
 #include <openssl/crypto.h> /* for CRYPTO_* and SSLeay_version */
 #include <openssl/rand.h>
@@ -513,7 +515,7 @@ int DH_set0_pqg(DH *dh, BIGNUM *p, BIGNUM *q, BIGNUM *g);
 /* not defined in public headers before OpenSSL 0.9.8 */
 STACK_OF(SSL_COMP) *SSL_COMP_get_compression_methods(void);
 #endif /* !defined(OPENSSL_NO_COMP) */
-#if OPENSSL_VERSION_NUMBER>=0x10101000L
+#if OPENSSL_VERSION_NUMBER>=0x10101000L && !defined(OPENSSL_IS_AWSLC)
 #include <openssl/storeerr.h>
 #endif /* OPENSSL_VERSION_NUMBER>=0x10101000L */
 #if OPENSSL_VERSION_NUMBER>=0x30000000L

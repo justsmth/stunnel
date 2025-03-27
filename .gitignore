@@ -1,0 +1,9 @@
+Makefile
+/doc/stunnel*.html
+/config.log
+/config.status
+/src/.deps
+src/config.h
+src/stamp-h1
+/version.txt
+/libtool

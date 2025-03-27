@@ -1585,9 +1585,9 @@ NOEXPORT char *ntlm3(char *domain,
     decoded=(uint8_t *)base64(0, phase2, (int)strlen(phase2)); /* decode */
     if(!decoded)
         return NULL;
-    crypt_DES(phase3+ntlm_off,    decoded+24, md4_hash);
-    crypt_DES(phase3+ntlm_off+8,  decoded+24, md4_hash+7);
-    crypt_DES(phase3+ntlm_off+16, decoded+24, md4_hash+14);
+    crypt_DES(*(DES_cblock*)(phase3+ntlm_off),    *(const_DES_cblock*)(decoded+24), md4_hash);
+    crypt_DES(*(DES_cblock*)(phase3+ntlm_off+8),  *(const_DES_cblock*)(decoded+24), md4_hash+7);
+    crypt_DES(*(DES_cblock*)(phase3+ntlm_off+16), *(const_DES_cblock*)(decoded+24), md4_hash+14);
     str_free(decoded);
 
     memcpy((char *)phase3+domain_off, domain, domain_len);
@@ -1602,20 +1602,20 @@ NOEXPORT void crypt_DES(DES_cblock dst, const_DES_cblock src,
     DES_key_schedule sched;
 
     /* convert 56-bit hash to 64-bit DES key */
-    key[0]=hash[0];
-    key[1]=(unsigned char)(((hash[0]&1)<<7)|(hash[1]>>1));
-    key[2]=(unsigned char)(((hash[1]&3)<<6)|(hash[2]>>2));
-    key[3]=(unsigned char)(((hash[2]&7)<<5)|(hash[3]>>3));
-    key[4]=(unsigned char)(((hash[3]&15)<<4)|(hash[4]>>4));
-    key[5]=(unsigned char)(((hash[4]&31)<<3)|(hash[5]>>5));
-    key[6]=(unsigned char)(((hash[5]&63)<<2)|(hash[6]>>6));
-    key[7]=(unsigned char)(((hash[6]&127)<<1));
+    key.bytes[0]=hash[0];
+    key.bytes[1]=(unsigned char)(((hash[0]&1)<<7)|(hash[1]>>1));
+    key.bytes[2]=(unsigned char)(((hash[1]&3)<<6)|(hash[2]>>2));
+    key.bytes[3]=(unsigned char)(((hash[2]&7)<<5)|(hash[3]>>3));
+    key.bytes[4]=(unsigned char)(((hash[3]&15)<<4)|(hash[4]>>4));
+    key.bytes[5]=(unsigned char)(((hash[4]&31)<<3)|(hash[5]>>5));
+    key.bytes[6]=(unsigned char)(((hash[5]&63)<<2)|(hash[6]>>6));
+    key.bytes[7]=(unsigned char)(((hash[6]&127)<<1));
     DES_set_odd_parity(&key);
 
     /* encrypt */
     DES_set_key_unchecked(&key, &sched);
-    DES_ecb_encrypt((const_DES_cblock *)src,
-        (DES_cblock *)dst, &sched, DES_ENCRYPT);
+    DES_ecb_encrypt(&src,
+        &dst, &sched, DES_ENCRYPT);
 }
 
 #endif

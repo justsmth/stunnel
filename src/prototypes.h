@@ -248,6 +248,19 @@ typedef struct psk_table_struct {
 #endif /* !defined(OPENSSL_NO_PSK) */
 
 #if OPENSSL_VERSION_NUMBER>=0x10000000L
+// For AWS-LC
+#include <openssl/des.h>
+
+typedef void CRYPTO_RWLOCK;
+CRYPTO_RWLOCK *CRYPTO_THREAD_lock_new(void);
+int CRYPTO_THREAD_read_lock(CRYPTO_RWLOCK *lock);
+int CRYPTO_THREAD_write_lock(CRYPTO_RWLOCK *lock);
+int CRYPTO_THREAD_unlock(CRYPTO_RWLOCK *lock);
+void CRYPTO_THREAD_lock_free(CRYPTO_RWLOCK *lock);
+int CRYPTO_atomic_add(int *val, int amount, int *ret, CRYPTO_RWLOCK *lock);
+
+
+
 typedef struct ticket_key_struct {
     unsigned char *key_val;
     int key_len;

@@ -37,6 +37,76 @@
 
 #include "prototypes.h"
 
+#include <openssl/hmac.h>
+
+typedef int SSL_TICKET_STATUS;
+/* Support for ticket appdata */
+/* fatal error, malloc failure */
+# define SSL_TICKET_FATAL_ERR_MALLOC 0
+/* fatal error, either from parsing or decrypting the ticket */
+# define SSL_TICKET_FATAL_ERR_OTHER  1
+/* No ticket present */
+# define SSL_TICKET_NONE             2
+/* Empty ticket present */
+# define SSL_TICKET_EMPTY            3
+/* the ticket couldn't be decrypted */
+# define SSL_TICKET_NO_DECRYPT       4
+/* a ticket was successfully decrypted */
+# define SSL_TICKET_SUCCESS          5
+/* same as above but the ticket needs to be renewed */
+# define SSL_TICKET_SUCCESS_RENEW    6
+
+/* Return codes for the decrypt session ticket callback */
+typedef int SSL_TICKET_RETURN;
+
+/* An error occurred */
+#define SSL_TICKET_RETURN_ABORT             0
+/* Do not use the ticket, do not send a renewed ticket to the client */
+#define SSL_TICKET_RETURN_IGNORE            1
+/* Do not use the ticket, send a renewed ticket to the client */
+#define SSL_TICKET_RETURN_IGNORE_RENEW      2
+/* Use the ticket, do not send a renewed ticket to the client */
+#define SSL_TICKET_RETURN_USE               3
+/* Use the ticket, send a renewed ticket to the client */
+#define SSL_TICKET_RETURN_USE_RENEW         4
+
+typedef int (*SSL_CTX_generate_session_ticket_fn)(SSL *s, void *arg);
+typedef SSL_TICKET_RETURN (*SSL_CTX_decrypt_session_ticket_fn)(SSL *s, SSL_SESSION *ss,
+                                                               const unsigned char *keyname,
+                                                               size_t keyname_len,
+                                                               SSL_TICKET_STATUS status,
+                                                               void *arg);
+int SSL_CTX_set_session_ticket_cb(SSL_CTX *ctx,
+                                  SSL_CTX_generate_session_ticket_fn gen_cb,
+                                  SSL_CTX_decrypt_session_ticket_fn dec_cb,
+                                  void *arg);
+
+# define SSL_CONF_FLAG_FILE              0x2
+# define SSL_CONF_FLAG_CLIENT            0x4
+# define SSL_CONF_FLAG_SERVER            0x8
+# define SSL_CONF_FLAG_CERTIFICATE       0x20
+SSL_CONF_CTX *SSL_CONF_CTX_new(void);
+void SSL_CONF_CTX_free(SSL_CONF_CTX *cctx);
+void SSL_CONF_CTX_set_ssl_ctx(SSL_CONF_CTX *cctx, SSL_CTX *ctx);
+void SSL_CONF_CTX_set_ssl(SSL_CONF_CTX *cctx, SSL *ssl);
+int SSL_CONF_CTX_finish(SSL_CONF_CTX *cctx);
+unsigned int SSL_CONF_CTX_set_flags(SSL_CONF_CTX *cctx, unsigned int flags);
+unsigned int SSL_CONF_CTX_clear_flags(SSL_CONF_CTX *cctx, unsigned int flags);
+
+int SSL_CONF_cmd(SSL_CONF_CTX *ctx, const char *option, const char *value);
+
+
+# define UI_R_RESULT_TOO_LARGE                            100
+# define UI_R_RESULT_TOO_SMALL                            101
+void EVP_set_pw_prompt(const char *prompt);
+
+# define OSSL_STORE_R_BAD_PASSWORD_READ                   115
+
+int SSL_SESSION_set1_ticket_appdata(SSL_SESSION *ss, const void *data, size_t len);
+int SSL_SESSION_get0_ticket_appdata(SSL_SESSION *ss, void **data, size_t *len);
+
+SSL_SESSION *SSL_SESSION_dup(const SSL_SESSION *src);
+
 #if defined(__GNUC__) && defined(USE_WIN32)
 #pragma GCC diagnostic ignored "-Wformat"
 #endif /* defined(__GNUC__) && defined(USE_WIN32) */
